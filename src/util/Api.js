@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "./constant";
+import { useHistory } from 'react-router-dom';
 
 export const request = (options) => {
     const headers = new Headers({
@@ -68,6 +69,7 @@ export function newPassword(loginRequest) {
     });
 }
 
+//verifying email after signup
 export function verifyEmail() {
     return request({
         url: API_BASE_URL + "accounts/email-verify/",
@@ -75,4 +77,18 @@ export function verifyEmail() {
     });
 }
 
+export function collegeList() {
+    return request({
+        url: API_BASE_URL + "colleges/colleges",
+        method: 'GET',  
+    });
+}
+
+export function semesterSection(id) {
+    id += 1
+    return request({
+        url: API_BASE_URL + "colleges/sem-sec/?id=" + id,
+        method: 'GET',  
+    });
+}
 

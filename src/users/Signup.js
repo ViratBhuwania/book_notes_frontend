@@ -7,20 +7,23 @@ import ButtonLoading from "../common/ButtonLoading";
 import { Form, Button, Card } from 'react-bootstrap';
 
 function Register(){
+    
     const [first_name, setFirstName] = useState("")
     const [last_name, setLastName] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [confirm_password, setConfirmPassword] = useState("")
-    
+    const [isLoading, setLoading] = useState(false);
 
     const history = useHistory();
-    var loading = false;
+    
     const handleSubmit = (evt) => {
         evt.preventDefault();
         let state = {first_name, last_name, email, password, confirm_password}
         
-        var loading = true
+        setLoading(true);
+        
+
         
         signup(state)
             .then(response => {
@@ -29,12 +32,20 @@ function Register(){
                 history.push('/login')
                 
             }).catch(error => {
-                alert("Something went wrong!!")
-                
-                loading = false
+                if (error.msg){
+                alert("Password and confirm password do not match")
+            }
+                else if(error.email){
+                    alert("Email already registered. Try Log in")
+                }
+                console.log(error.msg)
+                // window.location.reload();
+
+                setLoading(false);
                 
             });
-            console.log(loading)
+            
+        
     }
     return (
         <>
@@ -68,7 +79,7 @@ function Register(){
                         </Form.Group>
                         <div className="text-center">
                             
-                        {loading ?
+                        {isLoading ?
                             <ButtonLoading />
                         :<Button className="w-100" type ="submit">Sign Up</Button>
                         }

@@ -1,0 +1,15 @@
+.text-primary{
+    margin: 2rem 0;
+    background: #667375;
+}
+
+/* .card{
+    margin: 6rem 20rem;
+} */
+
+.register-teacher{
+    float: right;
+    padding-right: 4rem;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: smaller;
+}
