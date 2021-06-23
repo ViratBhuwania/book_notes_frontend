@@ -70,10 +70,10 @@ export function newPassword(loginRequest) {
 }
 
 //verifying email after signup
-export function verifyEmail() {
+export function verifyEmail(token) {
     return request({
-        url: API_BASE_URL + "accounts/email-verify/",
-        method: 'GET',  
+        url: API_BASE_URL + "accounts/email-verify/?token=" + token,
+        method: 'POST',  
     });
 }
 
@@ -92,3 +92,26 @@ export function semesterSection(id) {
     });
 }
 
+export function createStudentProfile(loginRequest) {
+    return request({
+        url: API_BASE_URL + "colleges/students/",
+        method: 'POST',
+        body: JSON.stringify(loginRequest)
+    });
+}
+
+export function createTeacherProfile(loginRequest) {
+    return request({
+        url: API_BASE_URL + "colleges/teachers/",
+        method: 'POST',
+        body: JSON.stringify(loginRequest)
+    });
+}
+
+export function createClassTeacherProfile(loginRequest) {
+    return request({
+        url: API_BASE_URL + "colleges/class-teacher-cr/",
+        method: 'POST',
+        body: JSON.stringify(loginRequest)
+    });
+}

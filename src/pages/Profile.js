@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 
 import { collegeList } from "../util/Api";
 import { semesterSection } from "../util/Api";
+import { createStudentProfile } from "../util/Api";
+import { createTeacherProfile } from "../util/Api";
+import { createClassTeacherProfile } from "../util/Api";
+import { current_user } from "../util/Api";
 
 import  CustomNavbar  from '../common/Navbar';
 import "./Profile.css";
@@ -9,7 +13,7 @@ import { Card, Form, Button, ButtonGroup, ToggleButton } from 'react-bootstrap';
 
 
 const Profile = () => {
-    let user = JSON.parse(localStorage.getItem('user_name'))
+    let user_info = JSON.parse(localStorage.getItem('user_name'))
 
     const [isTeacher, setTeacher] = useState(false);
     const [isStudent, setStudent] = useState(true);
@@ -22,7 +26,12 @@ const Profile = () => {
     const[totalSections, setSection] = useState([]);
 
     const[selectSections, setSelectSection] = useState([]);
+
+    const[branch, setBranch] = useState([]);
     
+    const [isClassTeacher, setClassTeacher] = useState(false);
+
+    const [isProfileRole, setProfileRole] = useState(false);
 
     function handleRegisterTeacher(){
         setTeacher(true);
@@ -34,7 +43,9 @@ const Profile = () => {
         setTeacher(false);
     }
     
-    
+    function handleClassTeacher(){
+        setClassTeacher(!isClassTeacher)
+    }
 
 
     var arr
@@ -60,6 +71,20 @@ const Profile = () => {
         }).catch(error => {
             alert("Something went wrong !!")
         });
+
+        current_user()
+            .then(response => {
+                console.log(response)
+                if (response.roles.length > 1){
+                    setProfileRole(!isProfileRole)
+                }
+              
+              
+          }).catch(error => {
+              console.log(error)
+              alert(error.detail)
+          });
+    
     }
 
     useEffect(() => {
@@ -86,7 +111,7 @@ const Profile = () => {
         var response = localStorage.getItem("Section_Array")
         
         response = JSON.parse(response)
-        
+        console.log(newSemester)
         var totalSemesterSections = response[newSemester-1].sections
         var i
         for(i=0;i<totalSemesterSections;i++){
@@ -97,6 +122,74 @@ const Profile = () => {
         
     }
 
+
+    const handleStudentSubmit = (evt) => {
+        console.log("hi")
+        evt.preventDefault();
+        var user = user_info.id
+        var college = parseInt(newCollege) + 1
+        var semester = parseInt(newSemester)
+        var section = String.fromCharCode(parseInt(selectSections)+65)
+        let state = {branch, semester, section, college, user}
+        console.log(state)
+        
+        // setLoading(true);
+        
+
+        
+        createStudentProfile(state)
+            .then(response => {
+                alert(response.msg)
+                //localStorage.setItem("ACCESS_TOKEN", response.access);
+                // history.push('/login')
+                
+            }).catch(error => {
+                console.log(error)
+                alert(error.msg)
+                //setLoading(false);
+            });       
+    }
+
+
+    const handleTeacherSubmit = (evt) => {
+        evt.preventDefault();
+        var user = user_info.id
+        var college = parseInt(newCollege) + 1
+        let state = {branch, college, user}
+        console.log(state)
+        
+        // setLoading(true);
+        
+        createTeacherProfile(state)
+            .then(response => {
+                alert(response.user)
+                //localStorage.setItem("ACCESS_TOKEN", response.access);
+                // history.push('/login')
+                
+            }).catch(error => {
+                console.log(error)
+                alert(error.msg)
+                //setLoading(false); 
+            });
+
+            if (isClassTeacher){
+                var semester = parseInt(newSemester)
+                var section = String.fromCharCode(parseInt(selectSections)+65)
+                let state = {semester, section, branch, college, user}
+                console.log(state)
+                createClassTeacherProfile(state)
+                    .then(response => {
+                        alert(response.user)
+                        //localStorage.setItem("ACCESS_TOKEN", response.access);
+                        // history.push('/login')
+                        
+                    }).catch(error => {
+                        console.log(error)
+                        alert(error.msg)
+                        //setLoading(false); 
+                    });
+            }
+    }
     
         
         const [radioValue, setRadioValue] = useState('1');
@@ -115,7 +208,12 @@ const Profile = () => {
         
         <>
             <CustomNavbar />
-                       
+            {isProfileRole ?
+                <>
+                 Name: {user_info.first_name} {user_info.last_name}<br />
+                 Email: {user_info.email}
+                </>    
+        :
             
             <Card class="text-primary" border="primary" style={{ width: '46rem' }}>
 
@@ -166,14 +264,14 @@ const Profile = () => {
                 <Card.Header>Register as a Teacher.    <span class="register-teacher">Are you a student?  </span>  </Card.Header>
                 <Card.Body>
                 
-                <Form>
+                <Form onSubmit = {handleTeacherSubmit}>
                     <Form.Group controlId="exampleForm.ControlInput1">
                         <Form.Label>Name</Form.Label>
-                        <span class="input-group-text" id="basic-addon2">{user.first_name} {user.last_name}</span>
+                        <span class="input-group-text" id="basic-addon2">{user_info.first_name} {user_info.last_name}</span>
                     </Form.Group>
                     <Form.Group controlId="exampleForm.ControlInput1">
                         <Form.Label>Email address</Form.Label>
-                        <span class="input-group-text" id="basic-addon2">{user.email}</span>
+                        <span class="input-group-text" id="basic-addon2">{user_info.email}</span>
                     </Form.Group>
                     <Form.Group controlId="exampleForm.ControlSelect2">
                         <Form.Label>College</Form.Label>
@@ -186,14 +284,44 @@ const Profile = () => {
                     
                     <Form.Group controlId="exampleForm.ControlSelect2">
                         <Form.Label>Branch</Form.Label>
-                            <Form.Control as="select">
+                            <Form.Control as="select" onChange={(e)=>{setBranch(e.target.value)}}>
+                                <option>Select Branch</option>
+                                <option>CSE</option>
+                                <option>ISE</option>
+                                <option>ECE</option>
+                                <option>EEE</option>
+                                <option>ME</option>
+                            </Form.Control>
+                    </Form.Group>
+                        {/* <Form.Check type="checkbox" label="Are you a class teacher?" onClick={() => handleClassTeacher()}/> */}
+                    
+                    {isClassTeacher ?
+                    <form>
+                        <Form.Group controlId="exampleForm.ControlSelect1">
+                        <Form.Label>Semester</Form.Label>
+                            <Form.Control as="select"  onChange={(e)=>{setSemester(e.target.value);handleSection()}}>
+                                <option>Select Semester</option>
                                 <option>1</option>
                                 <option>2</option>
                                 <option>3</option>
                                 <option>4</option>
                                 <option>5</option>
+                                <option>6</option>
+                                <option>7</option>
+                                <option>8</option>
                             </Form.Control>
-                    </Form.Group>
+                        </Form.Group>
+                        <Form.Group controlId="exampleForm.ControlSelect2">
+                            <Form.Label>Section</Form.Label>
+                                <Form.Control as="select" onClick={() => handleTotalSections()} onChange={(e)=>setSelectSection(e.target.value)}>
+                                    <option>Select section</option>
+                                    {totalSections}
+                                </Form.Control>
+                        </Form.Group>
+                    </form>
+                    :null
+                    }
+                    <Button className="w-100" type ="submit">Submit</Button>
                     </Form>
                     
                     
@@ -212,14 +340,14 @@ const Profile = () => {
                 <Card.Header>Register as a Student.    <span class="register-teacher">Are you a teacher? Click Here </span>  </Card.Header>
                 <Card.Body>
                 
-                <Form>
+                <Form onSubmit = {handleStudentSubmit}>
                     <Form.Group controlId="exampleForm.ControlInput1">
                         <Form.Label>Name</Form.Label>
-                        <span class="input-group-text" id="basic-addon2">{user.first_name} {user.last_name}</span>
+                        <span class="input-group-text" id="basic-addon2">{user_info.first_name} {user_info.last_name}</span>
                     </Form.Group>
                     <Form.Group controlId="exampleForm.ControlInput1">
                         <Form.Label>Email address</Form.Label>
-                        <span class="input-group-text" id="basic-addon2">{user.email}</span>
+                        <span class="input-group-text" id="basic-addon2">{user_info.email}</span>
                     </Form.Group>
                     <Form.Group controlId="exampleForm.ControlSelect2">
                         <Form.Label>College</Form.Label>
@@ -252,15 +380,17 @@ const Profile = () => {
                     </Form.Group>
                     <Form.Group controlId="exampleForm.ControlSelect2">
                         <Form.Label>Branch</Form.Label>
-                            <Form.Control as="select">
-                                <option>1</option>
-                                <option>2</option>
-                                <option>3</option>
-                                <option>4</option>
-                                <option>5</option>
+                            <Form.Control as="select" onChange={(e)=>{setBranch(e.target.value)}}>
+                                <option>Select branch</option>
+                                <option>CSE</option>
+                                <option>ISE</option>
+                                <option>ECE</option>
+                                <option>EEE</option>
+                                <option>ME</option>
                             </Form.Control>
                     </Form.Group>
-                    </Form>
+                    <Button className="w-100" type ="submit">Submit</Button>
+                </Form>
                     
                     
                     
@@ -269,7 +399,7 @@ const Profile = () => {
             </>
             :null}
         </Card> 
-        
+    }
         </>
     )
 };

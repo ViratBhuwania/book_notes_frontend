@@ -45,7 +45,7 @@ const App = () => {
                 <Resetpasswordform />
               </Route>
 
-              <Route path="/accounts/email-verify/:token">
+              <Route path="/activate/:token">
                 <EmailVerify />
               </Route>
 
